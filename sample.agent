@@ -1,0 +1,201 @@
+Option Public
+Option Declare
+
+Const BUFFER_SIZE = 1024&
+
+Declare Function escape Lib "HttpClient.dll" _
+	(ByVal szData As String, pnSizeEscape As Integer, ByVal pszEscape As String, ByVal  pszErrorMessage As String) As Integer
+Declare Function getMethod Lib "HttpClient.dll" _
+	(ByVal szUrl As String, ByVal szHeader As String, pnResHttpCode As Integer, _
+		pnSizeResHeader As Long, ByVal pszResHeader As String, pnSizeResCookie As Long, ByVal pszResCookie As String, _
+		pnSizeResBody As Long, ByVal pszResBody As String, ByVal pszErrorMessage As String) As Integer
+Declare Function postMethod Lib "HttpClient.dll" _
+	(ByVal szUrl As String, ByVal szHeader As String, ByVal szPostData As String, pnResHttpCode As Integer, _
+		pnSizeResHeader As Long, ByVal pszResHeader As String, pnSizeResCookie As Long, ByVal pszResCookie As String, _
+		pnSizeResBody As Long, ByVal pszResBody As String, ByVal pszErrorMessage As String) As Integer
+Declare Function putMethod Lib "HttpClient.dll" _
+	(ByVal szUrl As String, ByVal szHeader As String, ByVal szPostData As String, pnResHttpCode As Integer, _
+		pnSizeResHeader As Long, ByVal pszResHeader As String, pnSizeResCookie As Long, ByVal pszResCookie As String, _
+		pnSizeResBody As Long, ByVal pszResBody As String, ByVal pszErrorMessage As String) As Integer
+Declare Function deleteMethod Lib "HttpClient.dll" _
+	(ByVal szUrl As String, ByVal szHeader As String, pnResHttpCode As Integer, _
+		pnSizeResHeader As Long, ByVal pszResHeader As String, pnSizeResCookie As Long, ByVal pszResCookie As String, _
+		pnSizeResBody As Long, ByVal pszResBody As String, ByVal pszErrorMessage As String) As Integer
+
+Declare Function OSTranslate Lib "nnotes" _
+ (ByVal TranslateMode As Integer, _
+	ByVal szInput As Variant, _
+	ByVal nInput As Long, _
+	ByVal pszOutput As Variant, _
+	ByVal nOutput As Long) As Long
+
+	
+Sub Initialize()
+	'escape_sample
+	'post_sample
+	get_sample
+End Sub
+
+Function get_sample
+	Dim strUrl As String
+	Dim strHeader As String
+'	Dim strPostData As String
+	
+	Dim pnResHttpCode As Integer
+	Dim pnSizeResHeader As Long
+	Dim pnSizeResCookie As Long
+	Dim pnSizeResBody As Long
+	
+	Dim pszResHeader As String
+	Dim pszResCookie As String
+	Dim pszResBody As String
+	
+	Dim pszErrorMessage As String
+	Dim nResult As Integer
+	
+	strUrl = "http://zoom.com"
+	strHeader = "Accept-Encoding: gzip,deflate,sdch"
+
+	pnResHttpCode = 200
+	pnSizeResHeader = BUFFER_SIZE
+	pnSizeResCookie = BUFFER_SIZE
+	pnSizeResBody = BUFFER_SIZE * 50
+	pszResHeader = String(pnSizeResHeader, 0)
+	pszResCookie = String(pnSizeResCookie, 0)
+	pszResBody = String(pnSizeResBody, 0)
+	pszErrorMessage = String(256, 0)
+
+	nResult = getMethod(strUrl, strHeader, _
+		pnResHttpCode, pnSizeResHeader, pszResHeader, pnSizeResCookie, _
+		pszResCookie, pnSizeResBody, pszResBody, pszErrorMessage)
+	
+	If nResult = -1 Then
+		pszErrorMessage = Left(pszErrorMessage, InStr(pszErrorMessage, Chr$(0)) -1)
+		MsgBox "Error: [" & pszErrorMessage & "]"
+	ElseIf nResult >= 1 Then
+		If nResult = 1 Then
+			pszResBody = Left(pszResBody, InStr(pszResBody, Chr$(0)) -1)
+			MsgBox "Insufficient Body Buffer !!!" & Chr(13) & Chr(10) & _
+					"Needed Body Buffer: [" & pnSizeResBody & "]" & Chr(10) & Chr(13) & _
+					"Returned Body is [" & pszResBody & "]"
+		ElseIf nResult = 2 Then 
+			pszResCookie = Left(pszResCookie, InStr(pszResCookie, Chr$(0)) -1)
+			MsgBox "Insufficient Cookie Buffer !!!" & Chr(13) & Chr(10) & _
+					"Needed Cookie Buffer: [" & pnSizeResCookie & "]" & Chr(10) & Chr(13) & _
+					"Returned Cookie is [" & pszResCookie & "]"
+		Else
+			pszResHeader = Left(pszResHeader, InStr(pszResHeader, Chr$(0)) -1)
+			MsgBox "Insufficient Header Buffer !!!" & Chr(13) & Chr(10) & _
+					"Needed Header Buffer: [" & pnSizeResHeader & "]" & Chr(10) & Chr(13) & _
+					"Returned Header is [" & pszResHeader & "]"
+		End If
+	Else
+		MsgBox "Http Code: [" & pnResHttpCode & "]" & Chr(13) & Chr(10) & _
+				"Header: [" & pnSizeResHeader & "][" & pszResHeader & "]" & Chr(13) & Chr(10) &_
+				"Cookie: [" & pnSizeResCookie & "][" & pszResCookie & "]" & Chr(13) & Chr(10)
+		If pnSizeResBody = 0 Then
+			MsgBox "Body is empty ..."
+		Else
+			pszResBody = Left(pszResBody, pnSizeResBody)
+		MsgBox 	"Body: [" & pnSizeResBody & "][" & pszResBody & "]"
+		End If
+	End If
+End Function
+
+Function post_sample
+	Dim strUrl As String
+	Dim strHeader As String
+	Dim strPostData As String
+	
+	Dim pnResHttpCode As Integer
+	Dim pnSizeResHeader As Long
+	Dim pnSizeResCookie As Long
+	Dim pnSizeResBody As Long
+	
+	Dim pszResHeader As String
+	Dim pszResCookie As String
+	Dim pszResBody As String
+	
+	Dim pszErrorMessage As String
+	Dim nResult As Integer
+	
+	' login
+	strUrl		= "http://xxx.xxxx.co.kr/names.nsf?login"
+	strPostData	= "Username=user&Password=password"
+	strHeader	= "Accept-Encoding: gzip,deflate,sdch"
+	strHeader = strHeader & Chr(13) & Chr(10) & "Content-Type: application/x-www-form-urlencoded"
+	strHeader = strHeader & Chr(13) & Chr(10) & "Content-Length: " & Len(strPostData)
+	
+	pnResHttpCode = 200
+	pnSizeResHeader = BUFFER_SIZE
+	pnSizeResCookie = BUFFER_SIZE
+	pnSizeResBody = BUFFER_SIZE * 50
+	pszResHeader = String(pnSizeResHeader, 0)
+	pszResCookie = String(pnSizeResCookie, 0)
+	pszResBody = String(pnSizeResBody, 0)
+	pszErrorMessage = String(256, 0)
+
+	nResult = postMethod(strUrl, strHeader, strPostData, _
+		pnResHttpCode, pnSizeResHeader, pszResHeader, pnSizeResCookie, _
+		pszResCookie, pnSizeResBody, pszResBody, pszErrorMessage)
+	
+	If nResult = -1 Then
+		pszErrorMessage = Left(pszErrorMessage, InStr(pszErrorMessage, Chr$(0)) -1)
+		MsgBox "Error: [" & pszErrorMessage & "]"
+	ElseIf nResult >= 1 Then
+		If nResult = 1 Then
+			pszResBody = Left(pszResBody, InStr(pszResBody, Chr$(0)) -1)
+			MsgBox "Insufficient Body Buffer !!!" & Chr(13) & Chr(10) & _
+					"Needed Body Buffer: [" & pnSizeResBody & "]" & Chr(10) & Chr(13) & _
+					"Returned Body is [" & pszResBody & "]"
+		ElseIf nResult = 2 Then 
+			pszResCookie = Left(pszResCookie, InStr(pszResCookie, Chr$(0)) -1)
+			MsgBox "Insufficient Cookie Buffer !!!" & Chr(13) & Chr(10) & _
+					"Needed Cookie Buffer: [" & pnSizeResCookie & "]" & Chr(10) & Chr(13) & _
+					"Returned Cookie is [" & pszResCookie & "]"
+		Else
+			pszResHeader = Left(pszResHeader, InStr(pszResHeader, Chr$(0)) -1)
+			MsgBox "Insufficient Header Buffer !!!" & Chr(13) & Chr(10) & _
+					"Needed Header Buffer: [" & pnSizeResHeader & "]" & Chr(10) & Chr(13) & _
+					"Returned Header is [" & pszResHeader & "]"
+		End If
+	Else
+		MsgBox "Http Code: [" & pnResHttpCode & "]" & Chr(13) & Chr(10) & _
+				"Header: [" & pnSizeResHeader & "][" & pszResHeader & "]" & Chr(13) & Chr(10) &_
+				"Cookie: [" & pnSizeResCookie & "][" & pszResCookie & "]" & Chr(13) & Chr(10)
+		If pnSizeResBody = 0 Then
+			MsgBox "Body is empty ..."
+		Else
+			pszResBody = Left(pszResBody, pnSizeResBody)
+		MsgBox 	"Body: [" & pnSizeResBody & "][" & pszResBody & "]"
+		End If
+	End If
+End Function
+
+Function escape_sample
+	Dim szData As String
+	Dim pnSizeEscape As Integer
+	Dim pszEscape As String
+	Dim pszErrorMessage As String
+	Dim nResult As Integer
+
+	szData = "새롬정보시스템"
+	pnSizeEscape = LenB(szData) * 5
+	pszEscape = String(pnSizeEscape, 0)
+	pszErrorMessage = String(256, 0)
+	nResult = escape(szData, pnSizeEscape, pszEscape, pszErrorMessage)
+	
+	If nResult = -1 Then
+		pszErrorMessage = Left(pszErrorMessage, InStr(pszErrorMessage, Chr$(0)) -1)
+		MsgBox "Error: [" & pszErrorMessage & "]"
+	ElseIf nResult = 1 Then
+		pszEscape = Left(pszEscape, InStr(pszEscape, Chr$(0)) -1)
+		MsgBox "Insufficient Buffer !!!" & Chr(13) & Chr(10) & _
+				"Needed Buffer: [" & pnSizeEscape & "]" & Chr(13) & Chr(10) & _
+				"Returned Excape is [" & pszEscape & "]"
+	Else
+		pszEscape = Left(pszEscape, pnSizeEscape)
+		MsgBox "Escape: [" & nResult & "][" & pnSizeEscape & "][" & pszEscape & "]"
+	End If
+	
+End Function
