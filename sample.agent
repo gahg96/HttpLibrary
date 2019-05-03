@@ -22,14 +22,6 @@ Declare Function deleteMethod Lib "HttpClient.dll" _
 		pnSizeResHeader As Long, ByVal pszResHeader As String, pnSizeResCookie As Long, ByVal pszResCookie As String, _
 		pnSizeResBody As Long, ByVal pszResBody As String, ByVal pszErrorMessage As String) As Integer
 
-Declare Function OSTranslate Lib "nnotes" _
- (ByVal TranslateMode As Integer, _
-	ByVal szInput As Variant, _
-	ByVal nInput As Long, _
-	ByVal pszOutput As Variant, _
-	ByVal nOutput As Long) As Long
-
-	
 Sub Initialize()
 	'escape_sample
 	'post_sample
@@ -179,7 +171,7 @@ Function escape_sample
 	Dim pszErrorMessage As String
 	Dim nResult As Integer
 
-	szData = "새롬정보시스템"
+	szData = "대한민국"
 	pnSizeEscape = LenB(szData) * 5
 	pszEscape = String(pnSizeEscape, 0)
 	pszErrorMessage = String(256, 0)
@@ -197,5 +189,4 @@ Function escape_sample
 		pszEscape = Left(pszEscape, pnSizeEscape)
 		MsgBox "Escape: [" & nResult & "][" & pnSizeEscape & "][" & pszEscape & "]"
 	End If
-	
 End Function
